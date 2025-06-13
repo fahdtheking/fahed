@@ -1,0 +1,191 @@
+AI Agent API for Supplier Onboarding
+=====================================
+
+Overview
+--------
+This API provides a suite of advanced, production-ready AI features to automate, secure, and streamline supplier onboarding. It leverages only free and open-source tools (except for optional GPT-based fraud analysis) and is designed for easy integration into web, mobile, or enterprise onboarding workflows.
+
+Key Features
+------------
+- **Audio Transcription**: Converts supplier speech to text using state-of-the-art models.
+- **Text Sentiment & Fraud Analysis**: Evaluates supplier responses for sentiment and potential fraud risk.
+- **Audio Emotion Analysis**: Detects emotional tone in supplier audio responses.
+- **Face Verification**: Compares a live selfie with an ID photo to verify identity.
+- **Document OCR & Validation**: Extracts and validates text from uploaded documents.
+
+API Endpoints
+-------------
+
+### 1. `/transcribe` — Audio Transcription
+- **Method:** POST
+- **Input:** Audio file (`audio`, .wav recommended)
+- **Output:** JSON with transcribed text
+- **Description:** Converts spoken supplier responses to text using OpenAI Whisper.
+
+#### Example Request (cURL):
+```bash
+curl -X POST -F "audio=@sample.wav" http://localhost:5000/transcribe
+```
+
+---
+
+### 2. `/analyze_text` — Sentiment & Fraud Analysis
+- **Method:** POST
+- **Input:** JSON `{ "text": "Supplier answer here" }`
+- **Output:** JSON with sentiment and fraud analysis
+- **Description:** Analyzes text for sentiment and, if OpenAI API key is set, performs advanced fraud/risk analysis using GPT.
+
+#### Example Request (cURL):
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"text": "We guarantee on-time delivery."}' http://localhost:5000/analyze_text
+```
+
+---
+
+### 3. `/analyze_audio_emotion` — Audio Emotion Analysis
+- **Method:** POST
+- **Input:** Audio file (`audio`)
+- **Output:** JSON with detected emotion(s)
+- **Description:** Detects emotional tone in supplier audio using HuggingFace models.
+
+#### Example Request (cURL):
+```bash
+curl -X POST -F "audio=@sample.wav" http://localhost:5000/analyze_audio_emotion
+```
+
+---
+
+### 4. `/verify_face` — Face Verification
+- **Method:** POST
+- **Input:** Two image files: `face` (selfie), `id` (ID photo)
+- **Output:** JSON with match result and distance score
+- **Description:** Compares a live selfie with an ID photo to verify supplier identity using face_recognition.
+
+#### Example Request (cURL):
+```bash
+curl -X POST -F "face=@selfie.jpg" -F "id=@idcard.jpg" http://localhost:5000/verify_face
+```
+
+---
+
+### 5. `/ocr_document` — Document OCR & Validation
+- **Method:** POST
+- **Input:** Image file (`document`)
+- **Output:** JSON with extracted text
+- **Description:** Extracts text from uploaded documents using Tesseract OCR (via pytesseract).
+
+#### Example Request (cURL):
+```bash
+curl -X POST -F "document=@doc.png" http://localhost:5000/ocr_document
+```
+
+---
+
+Typical Supplier Onboarding Workflow
+------------------------------------
+1. Supplier uploads ID and selfie → `/verify_face` checks identity.
+2. Supplier uploads documents → `/ocr_document` extracts and validates info.
+3. Supplier answers onboarding questions (text/audio) → `/transcribe`, `/analyze_text`, `/analyze_audio_emotion` analyze responses for sentiment, emotion, and fraud risk.
+
+Security & Extensibility
+------------------------
+- All endpoints are stateless and ready for integration with authentication, logging, and audit systems.
+- Designed for extensibility: add liveness detection, background checks, multi-factor auth, and more.
+- All core features use only free/open-source tools for maximum accessibility and cost efficiency.
+
+Strengths & Recommendations
+==========================
+
+Strengths
+---------
+- **Open-Source Focus:** All core features use open-source tools (Whisper, HuggingFace, face_recognition, Tesseract), with GPT as an optional add-on.
+- **Clear, RESTful Endpoints:** Each function is logically separated and easy to understand.
+- **Practical Workflow:** The endpoints cover the full supplier onboarding journey.
+- **Security & Extensibility:** Security and extensibility are priorities.
+
+Refinement Suggestions
+----------------------
+
+1. **API Design & Usability**
+   - **Consistent Response Format:**
+     Ensure all endpoints return a standard JSON structure, e.g.:
+     ```json
+     {
+       "success": true,
+       "data": { ... },
+       "error": null
+     }
+     ```
+     This makes error handling and integration easier.
+   - **Error Handling:**
+     Document possible error responses (e.g., invalid file, unsupported format, model failure) for each endpoint.
+   - **Input Validation:**
+     Validate file types, sizes, and content before processing. Return clear error messages for invalid inputs.
+   - **Batch Processing:**
+     Consider supporting batch uploads for document OCR or audio analysis to improve efficiency for enterprise users.
+
+2. **Security**
+   - **Authentication:**
+     Even for open-source/self-hosted deployments, recommend an API key or token-based authentication to prevent abuse.
+   - **Rate Limiting:**
+     Document or implement rate limiting to protect against DoS attacks.
+   - **File Handling:**
+     Sanitize and scan uploaded files to prevent malicious uploads.
+
+3. **Extensibility & Modularity**
+   - **Pluggable Models:**
+     Allow users to swap out models (e.g., use different HuggingFace models for emotion analysis) via config or API parameters.
+   - **Optional Features:**
+     Clearly document which features require external APIs (e.g., GPT for fraud analysis) and how to enable/disable them.
+   - **Webhooks/Callbacks:**
+     For long-running tasks (e.g., large audio files), consider supporting async processing with webhooks.
+
+4. **Documentation & Examples**
+   - **OpenAPI/Swagger Spec:**
+     Provide a machine-readable OpenAPI spec for easy integration and client generation.
+   - **Sample Code:**
+     Offer example code snippets in Python, JavaScript, etc., for each endpoint.
+   - **Self-Hosting Guide:**
+     Include Docker Compose or similar scripts for easy deployment.
+
+5. **Open-Source Best Practices**
+   - **License Clarity:**
+     Clearly state the license for your API and all dependencies.
+   - **Community Contributions:**
+     Add a CONTRIBUTING.md and encourage PRs/issues.
+   - **Testing:**
+     Include unit and integration tests for each endpoint.
+
+Open-Source Tool Suggestions
+----------------------------
+- **Audio Transcription:** OpenAI Whisper (already used)
+- **Text Sentiment & Fraud:** VADER for sentiment (lightweight, open-source), transformers for advanced models
+- **Audio Emotion:** SpeechBrain or pyAudioAnalysis
+- **Face Verification:** face_recognition (already used)
+- **OCR:** Tesseract OCR (already used)
+
+Example: Standardized Response
+------------------------------
+Instead of:
+```json
+{ "text": "Hello world" }
+```
+Use:
+```json
+{
+  "success": true,
+  "data": { "text": "Hello world" },
+  "error": null
+}
+```
+This helps clients handle errors and results consistently.
+
+Summary Table
+-------------
+| Endpoint              | Open-Source Tool(s)      | Optional Proprietary | Suggestions                       |
+|-----------------------|-------------------------|---------------------|-----------------------------------|
+| /transcribe           | Whisper                 | None                | Batch support, async option        |
+| /analyze_text         | transformers, VADER     | GPT (optional)      | Pluggable models, validation      |
+| /analyze_audio_emotion| transformers, SpeechBrain| None               | Batch, async, pluggable models    |
+| /verify_face          | face_recognition        | None                | Add liveness detection            |
+| /ocr_document         | Tesseract OCR           | None                | Batch, validation                 |
